@@ -1,41 +1,23 @@
-using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Configuration;
 
 namespace IntegrationTests.Infrastructure;
 
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly SqliteConnection connection = new("Data Source=:memory:");
+    public string Strategy { get; set; } = "Greedy";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        if (connection.State != System.Data.ConnectionState.Open)
-        {
-            connection.Open();
-        }
-
         builder.UseEnvironment("IntegrationTesting");
-        builder.ConfigureServices(services =>
+        builder.ConfigureAppConfiguration((_, configuration) =>
         {
-            services.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();
-            services.RemoveAll<DbContextOptions<AppDbContext>>();
-            services.RemoveAll<AppDbContext>();
-
-            services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
+            configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Player:Name"] = "IntegrationPlayer",
+                ["Player:Strategy"] = Strategy
+            });
         });
-    }
-
-    public void EnsureDatabaseCreated()
-    {
-        using HttpClient _ = CreateClient();
-        using IServiceScope scope = Services.CreateScope();
-        AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        dbContext.Database.EnsureCreated();
     }
 }

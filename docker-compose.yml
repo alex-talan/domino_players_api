@@ -1,0 +1,36 @@
+services:
+  player1:
+    image: master-domino-player:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      Player__Name: Player1
+      Player__Strategy: StrategyA
+      ASPNETCORE_HTTP_PORTS: 8080
+    ports:
+      - "5001:8080"
+
+  player2:
+    image: master-domino-player:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      Player__Name: Player2
+      Player__Strategy: StrategyA
+      ASPNETCORE_HTTP_PORTS: 8080
+    ports:
+      - "5002:8080"
+
+  player3:
+    image: master-domino-player:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      Player__Name: Player3
+      Player__Strategy: StrategyB
+      ASPNETCORE_HTTP_PORTS: 8080
+    ports:
+      - "5003:8080"
