@@ -34,3 +34,15 @@ services:
       ASPNETCORE_HTTP_PORTS: 8080
     ports:
       - "5003:8080"
+
+  player4:
+    image: master-domino-player:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      Player__Name: Player4
+      Player__Strategy: StrategyB
+      ASPNETCORE_HTTP_PORTS: 8080
+    ports:
+      - "5004:8080"
