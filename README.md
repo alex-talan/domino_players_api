@@ -75,8 +75,14 @@ The final hand may contain zero to seven unique IDs from 0 to 27. Send `[]` when
 Each valid `/play` request logs the supplied table, remaining hand, and selected move using the configured `Player__Name`. Tile values are catalogue identifiers, not pip pairs:
 
 ```text
-[Player1] TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(19, head)
+[Player1] TURN:26 - TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(19, head)
 ```
+
+The Master should include optional `turn` in each `/play` request: a positive integer starting at 1 for each game, incremented for every turn including passes. Players log that number unchanged; they do not generate counters or infer turns from the table. Omitted or null `turn` logs `TURN:unavailable` for backward compatibility. Non-positive or malformed numbers return HTTP 400. Repeated requests retain the supplied number.
+
+For example, add `"turn":26` alongside `table`, `head`, `tail`, histories, `to_play`, and `your_tiles`. This field does not change the response or strategy.
+
+Docker Compose may display different containers' log lines out of order. Parsers can order numbered moves within a single game by `TURN`, but Player logs still describe proposed moves, not Master acceptance. Turn numbers restart between games, so multiple games require a Master game identifier and authoritative accepted-turn events for reliable statistics.
 
 A pass is logged as `My Move:(-1, )`. When `/end` receives `win: true`, the player logs:
 

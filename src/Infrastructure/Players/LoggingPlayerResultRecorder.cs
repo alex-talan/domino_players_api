@@ -10,11 +10,12 @@ public sealed class LoggingPlayerResultRecorder(
     ILogger<LoggingPlayerResultRecorder> logger,
     IOptions<PlayerOptions> playerOptions) : IPlayerResultRecorder
 {
-    public void RecordMove(TurnState turn, TileMove move)
+    public void RecordMove(TurnState turn, TileMove move, int? turnNumber = null)
     {
         logger.LogInformation(
-            "[{PlayerName}] TABLE:[{Table}] - My Tiles:[{YourTiles}] - My Move:({Tile}, {Position})",
+            "[{PlayerName}] TURN:{Turn} - TABLE:[{Table}] - My Tiles:[{YourTiles}] - My Move:({Tile}, {Position})",
             playerOptions.Value.Name,
+            turnNumber.HasValue ? (object)turnNumber.Value : "unavailable",
             string.Join(", ", turn.Table),
             string.Join(", ", turn.YourTiles),
             move.Tile,

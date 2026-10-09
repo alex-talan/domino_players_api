@@ -143,7 +143,8 @@ Never pass if a valid tile exists: the Master treats an unjustified pass as chea
 
 ### 5.2 Request validation
 
-- All documented fields are required. `table` and `your_tiles` must be arrays.
+- All core fields are required. `table` and `your_tiles` must be arrays.
+- Optional `turn` is a positive integer (1 through 2147483647) assigned by the Master, starting at 1 for each game and incremented for every turn, including passes. Omitted or null values are accepted for backward compatibility. Invalid values return HTTP 400.
 - Tile identifiers must be integers from 0 to 27. `table` and `your_tiles` must each contain no duplicates and must not overlap.
 - `your_tiles` must contain one to seven identifiers for a playable turn. The Master should end the game immediately after a player plays its last tile, rather than request another turn with an empty hand.
 - For an empty table, `head` and `tail` must both be null. Otherwise both must be integers from 0 to 6.
@@ -153,6 +154,8 @@ Never pass if a valid tile exists: the Master treats an unjustified pass as chea
 Return HTTP 400 for an invalid request using the repository's error-response conventions. An invalid request is not a legitimate pass. Other players' null histories are valid and do not affect the strategy.
 
 The Player relies on the Master's supplied ends and hand; it does not reconstruct the hand from histories or determine whether other players cheated.
+
+Move logs include `TURN:<number>` from the supplied `turn` field, or `TURN:unavailable` when absent or null. The Player does not infer turn numbers from tile counts or maintain a local counter. Retries preserve the supplied number. This diagnostic metadata does not affect move selection or the response. Compose output can arrive out of order across containers; these numbers identify turns within one game but do not prove acceptance or identify different games. Authoritative statistics remain the Master's responsibility.
 
 ### 5.3 Receive the result — `POST /end`
 

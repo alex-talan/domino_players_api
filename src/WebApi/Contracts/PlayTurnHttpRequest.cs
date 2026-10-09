@@ -6,6 +6,10 @@ namespace WebApi.Contracts;
 
 public sealed class PlayTurnHttpRequest : IValidatableObject
 {
+    [JsonPropertyName("turn")]
+    [Range(1, int.MaxValue)]
+    public int? Turn { get; init; }
+
     [JsonRequired]
     [JsonPropertyName("table")]
     [Required]

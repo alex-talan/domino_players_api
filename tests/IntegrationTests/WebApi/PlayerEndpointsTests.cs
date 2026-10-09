@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
+using Application.Players;
+using Domain.Domino;
 using FluentAssertions;
 using IntegrationTests.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -69,6 +71,26 @@ public sealed class PlayerEndpointsTests(TestWebApplicationFactory factory) : IC
         HttpResponseMessage response = await client.PostAsJsonAsync("/play", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(1)]
+    [InlineData(26)]
+    public async Task Play_ShouldForwardTheSuppliedTurnNumberToTheRecorder(int? turnNumber)
+    {
+        CapturingPlayerRecorder recorder = new();
+        using Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> numberedFactory = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services => services.AddSingleton<IPlayerResultRecorder>(recorder)));
+        HttpClient client = numberedFactory.CreateClient();
+        object request = CreatePlayRequest([], null, null, [22], turnNumber: turnNumber);
+
+        HttpResponseMessage firstResponse = await client.PostAsJsonAsync("/play", request);
+        HttpResponseMessage repeatedResponse = await client.PostAsJsonAsync("/play", request);
+
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        repeatedResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        recorder.TurnNumbers.Should().Equal(turnNumber, turnNumber);
     }
 
     [Theory]
@@ -149,6 +171,8 @@ public sealed class PlayerEndpointsTests(TestWebApplicationFactory factory) : IC
         yield return [CreatePlayRequest([0], 7, 1, [1])];
         yield return [CreatePlayRequest([], null, null, [1], nullP0: true)];
         yield return [CreatePlayRequest([], null, null, [1], toPlay: "p4")];
+        yield return [CreatePlayRequest([], null, null, [1], turnNumber: 0)];
+        yield return [CreatePlayRequest([], null, null, [1], turnNumber: -1)];
     }
 
     private static object CreatePlayRequest(
@@ -159,7 +183,8 @@ public sealed class PlayerEndpointsTests(TestWebApplicationFactory factory) : IC
         int[]? p0 = null,
         string toPlay = "p0",
         bool nullP0 = false,
-        bool nullP1 = false) => new
+        bool nullP1 = false,
+        int? turnNumber = null) => new
         {
             table,
             head,
@@ -169,8 +194,20 @@ public sealed class PlayerEndpointsTests(TestWebApplicationFactory factory) : IC
             p2 = (int[]?)[],
             p3 = (int[]?)[],
             to_play = toPlay,
+            turn = turnNumber,
             your_tiles = yourTiles
         };
+
+    private sealed class CapturingPlayerRecorder : IPlayerResultRecorder
+    {
+        public List<int?> TurnNumbers { get; } = [];
+
+        public void RecordMove(TurnState turn, TileMove move, int? turnNumber = null) => TurnNumbers.Add(turnNumber);
+
+        public void Record(bool win, IReadOnlyList<int>? finalTiles = null)
+        {
+        }
+    }
 
     private sealed record PlayResponse(int Tile, string Position);
 }

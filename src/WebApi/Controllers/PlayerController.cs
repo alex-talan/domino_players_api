@@ -13,7 +13,7 @@ public sealed class PlayerController(PlayerApplicationService playerApplicationS
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public ActionResult<PlayTurnHttpResponse> Play(PlayTurnHttpRequest request)
     {
-        Domain.Domino.TileMove move = playerApplicationService.SelectMove(request.ToTurnState());
+        Domain.Domino.TileMove move = playerApplicationService.SelectMove(request.ToTurnState(), request.Turn);
         return Ok(new PlayTurnHttpResponse(move.Tile, move.Position));
     }
 

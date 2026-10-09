@@ -6,10 +6,10 @@ public sealed class PlayerApplicationService(
     ITileSelectionStrategy tileSelectionStrategy,
     IPlayerResultRecorder playerResultRecorder)
 {
-    public TileMove SelectMove(TurnState turn)
+    public TileMove SelectMove(TurnState turn, int? turnNumber = null)
     {
         TileMove move = tileSelectionStrategy.SelectMove(turn);
-        playerResultRecorder.RecordMove(turn, move);
+        playerResultRecorder.RecordMove(turn, move, turnNumber);
         return move;
     }
 

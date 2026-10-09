@@ -29,8 +29,8 @@ public sealed class PlayerLoggingTests
     }
 
     [Theory]
-    [InlineData(19, "head", "[Player1] TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(19, head)")]
-    [InlineData(-1, "", "[Player1] TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(-1, )")]
+    [InlineData(19, "head", "[Player1] TURN:unavailable - TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(19, head)")]
+    [InlineData(-1, "", "[Player1] TURN:unavailable - TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(-1, )")]
     public void RecordMove_ShouldLogReadableTileIdentifiers(int tile, string position, string expectedMessage)
     {
         CapturingLogger logger = new();
@@ -56,7 +56,7 @@ public sealed class PlayerLoggingTests
 
         logger.Messages.Should().Equal(expectedMessage, "[Player1] Final Tiles: unavailable",
             expectedMessage, "[Player1] Final Tiles: unavailable",
-            "[Player1] TABLE:[] - My Tiles:[0] - My Move:(0, head)");
+            "[Player1] TURN:unavailable - TABLE:[] - My Tiles:[0] - My Move:(0, head)");
         move.Should().Be(new TileMove(0, "head"));
     }
 
@@ -73,6 +73,25 @@ public sealed class PlayerLoggingTests
 
         logger.Messages.Should().HaveCount(2);
         logger.Messages[1].Should().Be(expectedMessage);
+    }
+
+    [Theory]
+    [InlineData(25, -1, "")]
+    [InlineData(26, 3, "head")]
+    public void SelectMove_ShouldLogTheMastersTurnNumberIncludingPasses(int turnNumber, int tile, string position)
+    {
+        CapturingLogger logger = new();
+        LoggingPlayerResultRecorder recorder = new(logger, Options.Create(new PlayerOptions { Name = "Player1" }));
+        ITileSelectionStrategy strategy = Substitute.For<ITileSelectionStrategy>();
+        TurnState turn = new([14], 3, 1, [3]);
+        strategy.SelectMove(turn).Returns(new TileMove(tile, position));
+        PlayerApplicationService service = new(strategy, recorder);
+
+        service.SelectMove(turn, turnNumber);
+        service.SelectMove(turn, turnNumber);
+
+        string expected = $"[Player1] TURN:{turnNumber} - TABLE:[14] - My Tiles:[3] - My Move:({tile}, {position})";
+        logger.Messages.Should().Equal(expected, expected);
     }
 
     private sealed class CapturingLogger : ILogger<LoggingPlayerResultRecorder>
