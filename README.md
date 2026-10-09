@@ -62,6 +62,22 @@ Invalid requests return HTTP 400 with `ValidationProblemDetails`.
 
 Accepts `{"win":true}` or `{"win":false}` and returns HTTP 200 with an empty body. The supplied result is written to structured logs; it does not affect later turns.
 
+## Player Logs
+
+Each valid `/play` request logs the supplied table, remaining hand, and selected move using the configured `Player__Name`. Tile values are catalogue identifiers, not pip pairs:
+
+```text
+[Player1] TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(19, head)
+```
+
+A pass is logged as `My Move:(-1, )`. When `/end` receives `win: true`, the player logs:
+
+```text
+[Player1] I win!!
+```
+
+A false result logs `[Player1] I did not win.` Console output is single-line text with the standard logging prefix; Docker Compose also prefixes each line with its container name.
+
 ## Verify
 
 ```powershell
