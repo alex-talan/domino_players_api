@@ -6,5 +6,5 @@ public interface IPlayerResultRecorder
 {
     public void RecordMove(TurnState turn, TileMove move);
 
-    public void Record(bool win);
+    public void Record(bool win, IReadOnlyList<int>? finalTiles = null);
 }

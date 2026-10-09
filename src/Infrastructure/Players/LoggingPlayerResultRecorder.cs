@@ -21,7 +21,7 @@ public sealed class LoggingPlayerResultRecorder(
             move.Position);
     }
 
-    public void Record(bool win)
+    public void Record(bool win, IReadOnlyList<int>? finalTiles = null)
     {
         if (win)
         {
@@ -30,6 +30,16 @@ public sealed class LoggingPlayerResultRecorder(
         else
         {
             logger.LogInformation("[{PlayerName}] I did not win.", playerOptions.Value.Name);
+        }
+
+        if (finalTiles is null)
+        {
+            logger.LogInformation("[{PlayerName}] Final Tiles: unavailable", playerOptions.Value.Name);
+        }
+        else
+        {
+            logger.LogInformation("[{PlayerName}] Final Tiles:[{FinalTiles}]",
+                playerOptions.Value.Name, string.Join(", ", finalTiles));
         }
     }
 }

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using FluentAssertions;
 using IntegrationTests.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -103,6 +104,39 @@ public sealed class PlayerEndpointsTests(TestWebApplicationFactory factory) : IC
         HttpResponseMessage response = await client.PostAsJsonAsync("/end", new { });
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData("{\"win\":true,\"your_tiles\":[]}")]
+    [InlineData("{\"win\":false,\"your_tiles\":[0,14,19]}")]
+    [InlineData("{\"win\":false,\"your_tiles\":null}")]
+    public async Task End_ShouldAcceptOptionalFinalHand(string json)
+    {
+        HttpClient client = factory.CreateClient();
+        using StringContent content = new(json, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await client.PostAsync("/end", content);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await response.Content.ReadAsStringAsync()).Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("[-1]")]
+    [InlineData("[28]")]
+    [InlineData("[0,0]")]
+    [InlineData("[0,1,2,3,4,5,6,7]")]
+    [InlineData("[1.5]")]
+    [InlineData("\"not an array\"")]
+    public async Task End_ShouldRejectMalformedFinalHand(string handJson)
+    {
+        HttpClient client = factory.CreateClient();
+        using StringContent content = new($"{{\"win\":false,\"your_tiles\":{handJson}}}", Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await client.PostAsync("/end", content);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
     }
 
     public static IEnumerable<object[]> InvalidPlayRequests()

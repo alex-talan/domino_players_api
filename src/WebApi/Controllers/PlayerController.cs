@@ -22,7 +22,7 @@ public sealed class PlayerController(PlayerApplicationService playerApplicationS
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public IActionResult End(EndGameHttpRequest request)
     {
-        playerApplicationService.RecordResult(request.Win!.Value);
+        playerApplicationService.RecordResult(request.Win!.Value, request.YourTiles);
         return Ok();
     }
 }

@@ -13,5 +13,5 @@ public sealed class PlayerApplicationService(
         return move;
     }
 
-    public void RecordResult(bool win) => playerResultRecorder.Record(win);
+    public void RecordResult(bool win, IReadOnlyList<int>? finalTiles = null) => playerResultRecorder.Record(win, finalTiles);
 }

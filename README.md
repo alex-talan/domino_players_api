@@ -62,6 +62,14 @@ Invalid requests return HTTP 400 with `ValidationProblemDetails`.
 
 Accepts `{"win":true}` or `{"win":false}` and returns HTTP 200 with an empty body. The supplied result is written to structured logs; it does not affect later turns.
 
+To log each player's exact final hand, the Master must include that player's remaining tile identifiers in an optional `your_tiles` field:
+
+```json
+{"win":false,"your_tiles":[0,14,19]}
+```
+
+The final hand may contain zero to seven unique IDs from 0 to 27. Send `[]` when the hand is empty, including when a player wins by playing its last tile. A blocked-game winner can still have remaining tiles. Invalid hands return HTTP 400. Omitted or null `your_tiles` remains valid for compatibility, but the Player cannot determine the exact final hand from `win` alone.
+
 ## Player Logs
 
 Each valid `/play` request logs the supplied table, remaining hand, and selected move using the configured `Player__Name`. Tile values are catalogue identifiers, not pip pairs:
@@ -77,6 +85,14 @@ A pass is logged as `My Move:(-1, )`. When `/end` receives `win: true`, the play
 ```
 
 A false result logs `[Player1] I did not win.` Console output is single-line text with the standard logging prefix; Docker Compose also prefixes each line with its container name.
+
+Each end notification also logs the supplied final hand:
+
+```text
+[Player1] Final Tiles:[0, 14, 19]
+```
+
+An empty hand logs `Final Tiles:[]`. An omitted or null final hand logs `Final Tiles: unavailable`; the Player never estimates it by assuming its last proposed move was accepted.
 
 ## Verify
 

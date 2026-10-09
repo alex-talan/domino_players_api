@@ -54,9 +54,25 @@ public sealed class PlayerLoggingTests
         service.RecordResult(win);
         TileMove move = service.SelectMove(new TurnState([], null, null, [0]));
 
-        logger.Messages.Take(2).Should().Equal(expectedMessage, expectedMessage);
+        logger.Messages.Should().Equal(expectedMessage, "[Player1] Final Tiles: unavailable",
+            expectedMessage, "[Player1] Final Tiles: unavailable",
+            "[Player1] TABLE:[] - My Tiles:[0] - My Move:(0, head)");
         move.Should().Be(new TileMove(0, "head"));
-        logger.Messages[2].Should().Be("[Player1] TABLE:[] - My Tiles:[0] - My Move:(0, head)");
+    }
+
+    [Theory]
+    [InlineData(true, new int[] { }, "[Player1] Final Tiles:[]")]
+    [InlineData(false, new int[] { 0, 14, 19 }, "[Player1] Final Tiles:[0, 14, 19]")]
+    public void RecordResult_ShouldLogTheExactFinalHand(bool win, int[] finalTiles, string expectedMessage)
+    {
+        CapturingLogger logger = new();
+        LoggingPlayerResultRecorder recorder = new(logger, Options.Create(new PlayerOptions { Name = "Player1" }));
+        PlayerApplicationService service = new(new RandomTileSelectionStrategy(), recorder);
+
+        service.RecordResult(win, finalTiles);
+
+        logger.Messages.Should().HaveCount(2);
+        logger.Messages[1].Should().Be(expectedMessage);
     }
 
     private sealed class CapturingLogger : ILogger<LoggingPlayerResultRecorder>

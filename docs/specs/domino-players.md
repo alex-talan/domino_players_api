@@ -168,7 +168,18 @@ Accept a required Boolean `win`, print a winning message, and return HTTP 200 wi
 
 A true value means this player is a winner, including a shared win when several eligible players tie for the lowest remaining score in a blocked game. A false value means this player is not a winner. When a player plays its last tile, the Master declares that player the sole winner.
 
-The Player does not calculate winners or expect any additional result fields.
+The Player does not calculate winners. The Master may also send an optional `your_tiles` array containing this player's authoritative final hand:
+
+```json
+{
+  "win": false,
+  "your_tiles": [0, 14, 19]
+}
+```
+
+The final hand must contain zero to seven unique integer identifiers from 0 to 27. An empty array represents an empty final hand, including a win by playing the last tile. A blocked-game winner may have a nonempty final hand. Invalid final hands return HTTP 400. Omitted or null `your_tiles` is accepted for backward compatibility.
+
+Each player logs its outcome and `Final Tiles:[...]` from the supplied final hand. When the hand is omitted or null, it logs `Final Tiles: unavailable`. The Player must not estimate the final hand from a proposed move, since only the Master knows whether the move was accepted.
 
 ## 6. State and lifecycle
 
