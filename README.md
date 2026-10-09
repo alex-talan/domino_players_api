@@ -67,3 +67,30 @@ Accepts `{"win":true}` or `{"win":false}` and returns HTTP 200 with an empty bod
 ```powershell
 dotnet test
 ```
+
+# Troubleshooting 
+
+## WSL Docker socket permissions issue
+```bash
+$ docker compose up --build
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+```
+**Solution**:
+```bash
+sudo usermod -aG docker "$USER"
+newgrp docker
+docker info
+docker compose up --build
+```
+
+# Stop  the application
+
+Press **Ctrl+C** in that terminal to stop all players.
+
+To also remove the stopped containers and Compose network, run:
+
+```bash
+docker compose down
+```
+
+If you detach instead, run `docker compose down` from another terminal in the project directory to stop and remove everything.
