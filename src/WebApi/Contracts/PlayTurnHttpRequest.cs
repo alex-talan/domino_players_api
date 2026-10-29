@@ -65,6 +65,16 @@ public sealed class PlayTurnHttpRequest : IValidatableObject
 
             if (Table.Length == 0)
             {
+                if (ToPlay != "p0")
+                {
+                    yield return new ValidationResult("Only p0 can open the game.", [nameof(ToPlay)]);
+                }
+
+                if (YourTiles is not null && !YourTiles.Contains(TileCatalogue.DoubleSixId))
+                {
+                    yield return new ValidationResult("The opening hand must contain tile 27 (6,6).", [nameof(YourTiles)]);
+                }
+
                 if (Head is not null || Tail is not null)
                 {
                     yield return new ValidationResult("Head and tail must be null for an empty table.", [nameof(Head), nameof(Tail)]);

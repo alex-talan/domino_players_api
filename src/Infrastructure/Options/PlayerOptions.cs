@@ -6,5 +6,7 @@ public sealed class PlayerOptions
 
     public string Name { get; init; } = "Player";
 
+    public string Id { get; init; } = "p0";
+
     public string Strategy { get; init; } = "Greedy";
 }

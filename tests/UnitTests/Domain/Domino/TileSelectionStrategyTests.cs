@@ -5,6 +5,46 @@ namespace UnitTests.Domain.Domino;
 
 public sealed class TileSelectionStrategyTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Strategies_ShouldOpenWithDoubleSixRegardlessOfHandOrder(bool random)
+    {
+        ITileSelectionStrategy strategy = random ? new RandomTileSelectionStrategy() : new GreedyTileSelectionStrategy();
+        TurnState turn = new([], null, null, [0, 14, 27, 22]);
+
+        strategy.SelectMove(turn).Should().Be(new TileMove(27, "head"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Strategies_ShouldRejectAnOpeningHandWithoutDoubleSix(bool random)
+    {
+        ITileSelectionStrategy strategy = random ? new RandomTileSelectionStrategy() : new GreedyTileSelectionStrategy();
+        Action action = () => strategy.SelectMove(new TurnState([], null, null, [0, 22]));
+
+        action.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData("p0", "Team0")]
+    [InlineData("p1", "Team1")]
+    [InlineData("p2", "Team0")]
+    [InlineData("p3", "Team1")]
+    public void Teams_ShouldPairOppositeSeats(string playerId, string teamId)
+    {
+        DominoTeams.GetTeamId(playerId).Should().Be(teamId);
+    }
+
+    [Fact]
+    public void Teams_ShouldRejectUnknownPlayers()
+    {
+        Action action = () => DominoTeams.GetTeamId("p4");
+
+        action.Should().Throw<ArgumentException>();
+    }
+
     [Fact]
     public void Greedy_ShouldSelectHighestScoringPlayableTile()
     {
@@ -39,7 +79,7 @@ public sealed class TileSelectionStrategyTests
     [Fact]
     public void Greedy_ShouldRandomizeBetweenEqualHighestScores()
     {
-        TurnState turn = new([], null, null, [6, 11]);
+        TurnState turn = new([5], 0, 5, [6, 11]);
 
         TileMove move = new GreedyTileSelectionStrategy().SelectMove(turn);
 

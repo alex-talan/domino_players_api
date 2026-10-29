@@ -2,6 +2,8 @@ namespace Domain.Domino;
 
 public static class TileCatalogue
 {
+    public const int DoubleSixId = 27;
+
     public static IReadOnlyList<DominoTile> All { get; } = Array.AsReadOnly<DominoTile>(
     [
         new(0, 0, 0), new(1, 0, 1), new(2, 0, 2), new(3, 0, 3), new(4, 0, 4), new(5, 0, 5), new(6, 0, 6),

@@ -29,8 +29,8 @@ public sealed class PlayerLoggingTests
     }
 
     [Theory]
-    [InlineData(19, "head", "[Player1] TURN:unavailable - TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(19, head)")]
-    [InlineData(-1, "", "[Player1] TURN:unavailable - TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(-1, )")]
+    [InlineData(19, "head", "[Player1] [p0/Team0] TURN:unavailable - TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(19, head)")]
+    [InlineData(-1, "", "[Player1] [p0/Team0] TURN:unavailable - TABLE:[22, 4, 2] - My Tiles:[14, 19] - My Move:(-1, )")]
     public void RecordMove_ShouldLogReadableTileIdentifiers(int tile, string position, string expectedMessage)
     {
         CapturingLogger logger = new();
@@ -42,8 +42,8 @@ public sealed class PlayerLoggingTests
     }
 
     [Theory]
-    [InlineData(true, "[Player1] I win!!")]
-    [InlineData(false, "[Player1] I did not win.")]
+    [InlineData(true, "[Player1] [p0/Team0] Winning team: Team0. My team wins.")]
+    [InlineData(false, "[Player1] [p0/Team0] Winning team: Team1. My team loses.")]
     public void RecordResult_ShouldLogTheSuppliedOutcomeWithoutBlockingLaterMoves(bool win, string expectedMessage)
     {
         CapturingLogger logger = new();
@@ -52,17 +52,18 @@ public sealed class PlayerLoggingTests
 
         service.RecordResult(win);
         service.RecordResult(win);
-        TileMove move = service.SelectMove(new TurnState([], null, null, [0]));
+        TileMove move = service.SelectMove(new TurnState([], null, null, [0, 27]));
 
-        logger.Messages.Should().Equal(expectedMessage, "[Player1] Final Tiles: unavailable",
-            expectedMessage, "[Player1] Final Tiles: unavailable",
-            "[Player1] TURN:unavailable - TABLE:[] - My Tiles:[0] - My Move:(0, head)");
-        move.Should().Be(new TileMove(0, "head"));
+        logger.Messages.Should().Equal(expectedMessage, "[Player1] [p0/Team0] Final Tiles: unavailable",
+            expectedMessage, "[Player1] [p0/Team0] Final Tiles: unavailable",
+            "[Player1] [p0/Team0] TURN:unavailable - TABLE:[] - My Tiles:[0, 27] - My Move:(27, head)");
+        move.Should().Be(new TileMove(27, "head"));
     }
 
     [Theory]
-    [InlineData(true, new int[] { }, "[Player1] Final Tiles:[]")]
-    [InlineData(false, new int[] { 0, 14, 19 }, "[Player1] Final Tiles:[0, 14, 19]")]
+    [InlineData(true, new int[] { }, "[Player1] [p0/Team0] Final Tiles:[]")]
+    [InlineData(true, new int[] { 14, 19 }, "[Player1] [p0/Team0] Final Tiles:[14, 19]")]
+    [InlineData(false, new int[] { 0, 14, 19 }, "[Player1] [p0/Team0] Final Tiles:[0, 14, 19]")]
     public void RecordResult_ShouldLogTheExactFinalHand(bool win, int[] finalTiles, string expectedMessage)
     {
         CapturingLogger logger = new();
@@ -90,8 +91,30 @@ public sealed class PlayerLoggingTests
         service.SelectMove(turn, turnNumber);
         service.SelectMove(turn, turnNumber);
 
-        string expected = $"[Player1] TURN:{turnNumber} - TABLE:[14] - My Tiles:[3] - My Move:({tile}, {position})";
+        string expected = $"[Player1] [p0/Team0] TURN:{turnNumber} - TABLE:[14] - My Tiles:[3] - My Move:({tile}, {position})";
         logger.Messages.Should().Equal(expected, expected);
+    }
+
+    [Theory]
+    [InlineData("p0", true, "Team0", "Team0", "wins")]
+    [InlineData("p2", true, "Team0", "Team0", "wins")]
+    [InlineData("p1", false, "Team1", "Team0", "loses")]
+    [InlineData("p3", false, "Team1", "Team0", "loses")]
+    [InlineData("p0", false, "Team0", "Team1", "loses")]
+    [InlineData("p2", false, "Team0", "Team1", "loses")]
+    [InlineData("p1", true, "Team1", "Team1", "wins")]
+    [InlineData("p3", true, "Team1", "Team1", "wins")]
+    public void RecordResult_ShouldIdentifyTheWinningTeamForEverySeat(
+        string playerId, bool win, string teamId, string winningTeamId, string outcome)
+    {
+        CapturingLogger logger = new();
+        LoggingPlayerResultRecorder recorder = new(logger,
+            Options.Create(new PlayerOptions { Name = "TestPlayer", Id = playerId }));
+
+        recorder.Record(win, [14]);
+
+        logger.Messages[0].Should().Be(
+            $"[TestPlayer] [{playerId}/{teamId}] Winning team: {winningTeamId}. My team {outcome}.");
     }
 
     private sealed class CapturingLogger : ILogger<LoggingPlayerResultRecorder>

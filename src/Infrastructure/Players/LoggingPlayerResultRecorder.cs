@@ -13,8 +13,10 @@ public sealed class LoggingPlayerResultRecorder(
     public void RecordMove(TurnState turn, TileMove move, int? turnNumber = null)
     {
         logger.LogInformation(
-            "[{PlayerName}] TURN:{Turn} - TABLE:[{Table}] - My Tiles:[{YourTiles}] - My Move:({Tile}, {Position})",
+            "[{PlayerName}] [{PlayerId}/{TeamId}] TURN:{Turn} - TABLE:[{Table}] - My Tiles:[{YourTiles}] - My Move:({Tile}, {Position})",
             playerOptions.Value.Name,
+            playerOptions.Value.Id,
+            DominoTeams.GetTeamId(playerOptions.Value.Id),
             turnNumber.HasValue ? (object)turnNumber.Value : "unavailable",
             string.Join(", ", turn.Table),
             string.Join(", ", turn.YourTiles),
@@ -24,23 +26,21 @@ public sealed class LoggingPlayerResultRecorder(
 
     public void Record(bool win, IReadOnlyList<int>? finalTiles = null)
     {
-        if (win)
-        {
-            logger.LogInformation("[{PlayerName}] I win!!", playerOptions.Value.Name);
-        }
-        else
-        {
-            logger.LogInformation("[{PlayerName}] I did not win.", playerOptions.Value.Name);
-        }
+        string teamId = DominoTeams.GetTeamId(playerOptions.Value.Id);
+        string winningTeamId = win ? teamId : teamId == "Team0" ? "Team1" : "Team0";
+        logger.LogInformation(
+            "[{PlayerName}] [{PlayerId}/{TeamId}] Winning team: {WinningTeamId}. My team {Outcome}.",
+            playerOptions.Value.Name, playerOptions.Value.Id, teamId, winningTeamId, win ? "wins" : "loses");
 
         if (finalTiles is null)
         {
-            logger.LogInformation("[{PlayerName}] Final Tiles: unavailable", playerOptions.Value.Name);
+            logger.LogInformation("[{PlayerName}] [{PlayerId}/{TeamId}] Final Tiles: unavailable",
+                playerOptions.Value.Name, playerOptions.Value.Id, teamId);
         }
         else
         {
-            logger.LogInformation("[{PlayerName}] Final Tiles:[{FinalTiles}]",
-                playerOptions.Value.Name, string.Join(", ", finalTiles));
+            logger.LogInformation("[{PlayerName}] [{PlayerId}/{TeamId}] Final Tiles:[{FinalTiles}]",
+                playerOptions.Value.Name, playerOptions.Value.Id, teamId, string.Join(", ", finalTiles));
         }
     }
 }

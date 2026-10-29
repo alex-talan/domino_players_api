@@ -4,6 +4,11 @@ public sealed class GreedyTileSelectionStrategy : ITileSelectionStrategy
 {
     public TileMove SelectMove(TurnState turn)
     {
+        if (TileSelectionRules.GetOpeningMove(turn) is { } openingMove)
+        {
+            return openingMove;
+        }
+
         List<DominoTile> playableTiles = turn.YourTiles
             .Select(TileCatalogue.GetById)
             .Where(tile => TileSelectionRules.IsPlayable(tile, turn))

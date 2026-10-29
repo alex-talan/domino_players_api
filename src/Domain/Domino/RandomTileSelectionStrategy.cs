@@ -4,6 +4,11 @@ public sealed class RandomTileSelectionStrategy : ITileSelectionStrategy
 {
     public TileMove SelectMove(TurnState turn)
     {
+        if (TileSelectionRules.GetOpeningMove(turn) is { } openingMove)
+        {
+            return openingMove;
+        }
+
         foreach (int tileId in turn.YourTiles)
         {
             DominoTile tile = TileCatalogue.GetById(tileId);

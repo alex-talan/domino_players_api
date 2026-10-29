@@ -3,8 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace WebApi.Contracts;
 
+/// <summary>Reports the Master's team result and this player's optional final hand.</summary>
 public sealed class EndGameHttpRequest : IValidatableObject
 {
+    /// <summary>True for both winning teammates; false for both losing teammates.</summary>
     [JsonRequired]
     [JsonPropertyName("win")]
     [Required]

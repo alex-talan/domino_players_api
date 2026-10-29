@@ -6,19 +6,22 @@ services:
       dockerfile: Dockerfile
     environment:
       Player__Name: Player1
-      Player__Strategy: StrategyA
+      Player__Id: p0
+      Player__Strategy: ${TEAM0_STRATEGY:-StrategyA}
       ASPNETCORE_HTTP_PORTS: 8080
     ports:
       - "5001:8080"
 
   player2:
+    profiles: ["four-players"]
     image: master-domino-player:local
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       Player__Name: Player2
-      Player__Strategy: StrategyA
+      Player__Id: p1
+      Player__Strategy: ${TEAM1_STRATEGY:-StrategyB}
       ASPNETCORE_HTTP_PORTS: 8080
     ports:
       - "5002:8080"
@@ -30,19 +33,22 @@ services:
       dockerfile: Dockerfile
     environment:
       Player__Name: Player3
-      Player__Strategy: StrategyB
+      Player__Id: p2
+      Player__Strategy: ${TEAM0_STRATEGY:-StrategyA}
       ASPNETCORE_HTTP_PORTS: 8080
     ports:
       - "5003:8080"
 
   player4:
+    profiles: ["four-players"]
     image: master-domino-player:local
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       Player__Name: Player4
-      Player__Strategy: StrategyB
+      Player__Id: p3
+      Player__Strategy: ${TEAM1_STRATEGY:-StrategyB}
       ASPNETCORE_HTTP_PORTS: 8080
     ports:
       - "5004:8080"

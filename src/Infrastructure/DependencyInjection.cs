@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddOptions<PlayerOptions>()
             .Bind(configuration.GetSection(PlayerOptions.SectionName))
             .Validate(options => !string.IsNullOrWhiteSpace(options.Name), "Player:Name is required.")
+            .Validate(options => options.Id is "p0" or "p1" or "p2" or "p3", "Player:Id must be p0, p1, p2, or p3.")
             .Validate(options => IsSupportedStrategy(options.Strategy), "Player:Strategy must be Greedy, Random, StrategyA, or StrategyB.")
             .ValidateOnStart();
 
